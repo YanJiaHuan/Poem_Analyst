@@ -6,7 +6,7 @@ poem(especially chinese poem) lovers to better understand the imagery, emotion, 
 
 <font face="黑体" color=black size=6>一些想法：</font>
 
-古诗词有比较特殊的文本结构，通常的word embedding不太能够正确表示，需要在bert-whm上重新预训练
+古诗词有比较特殊的文本结构，通常的word embedding不太能够正确表示，需要在bert-wwm上重新预训练
 
 古诗词的tokenizer需要把特殊的意象，事件分词，避免切分意象
 
