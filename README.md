@@ -11,3 +11,9 @@ poem(especially chinese poem) lovers to better understand the imagery, emotion, 
 古诗词的tokenizer需要把特殊的意象，事件分词，避免切分意象
 
 在这基础上，有两个分支，可以做知识图谱+图像生成，或者白话翻译+图像生成
+
+## ==安装huggingface==
+conda install -c huggingface transformers
+这个得在pytorch或者tensorflow支持下运行
+根据自己电脑去https://pytorch.org/get-started/locally/安装pytorch
+conda install pytorch torchvision torchaudio -c pytorch
