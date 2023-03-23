@@ -17,3 +17,9 @@ conda install -c huggingface transformers
 这个得在pytorch或者tensorflow支持下运行
 根据自己电脑去https://pytorch.org/get-started/locally/安装pytorch
 conda install pytorch torchvision torchaudio -c pytorch
+
+## ==mac 装torch with GPU==
+link：https://www.youtube.com/watch?v=VEDy-c5Sk8Y
+
+## == weights you might want to use==
+https://drive.google.com/drive/folders/1D0K5npxx9PBsHhMe5y8fmXoAz7mOUXgx?usp=sharing
