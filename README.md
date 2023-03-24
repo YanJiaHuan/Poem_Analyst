@@ -12,6 +12,15 @@ poem(especially chinese poem) lovers to better understand the imagery, emotion, 
 
 在这基础上，有两个分支，可以做知识图谱+图像生成，或者白话翻译+图像生成
 
+update: 2023/3/24  
+分支二改成 基于chinese-bert-wwm，在古诗词上做典故识别，模型需要做到从古诗词里识别
+典故，然后将modified好的message传给chatgpt，让他解释典故  
+如："庄生晓梦迷蝴蝶，望帝春心托杜鹃"-- 模型识别：梦蝶  
+"梦蝶" --> chatgpt message-->"'梦蝶'是什么典故"  
+response from chatgpt:   
+"梦蝶"是一个源自中国哲学家庄子的典故，它是指庄子的一个著名哲学思想：庄周梦蝶。这个典故来自于庄子的《庄子·齐物论》一篇，描述了庄子的一个经典哲学观念。
+这个典故的核心思想是关于现实与幻觉之间的边界，以及主体与客体之间的关系。故事讲述了庄子梦见自己变成了一只蝴蝶，飞舞自在，尽情地享受生活。当他醒来后，发现自己还是庄子。于是他开始思考：他究竟是庄子梦见了蝴蝶，还是蝴蝶在梦中变成了庄子？
+
 ## ==安装huggingface==
 conda install -c huggingface transformers
 这个得在pytorch或者tensorflow支持下运行
@@ -27,3 +36,10 @@ https://drive.google.com/drive/folders/1D0K5npxx9PBsHhMe5y8fmXoAz7mOUXgx?usp=sha
 ## ==LTP==
 pip install ltp
 link: https://ltp.ai/docs/quickstart.html#id6
+
+## ==hint1==
+![img.png|500](Image/hint1.png)
+ltp的模型是黑盒的，看起来像一个工具，用这个工具做分词，基于分词结果做masking，这样
+就有可能有类似 床前[MASK][MASK]光 的训练数据，模型要学会预测 "明月"
+
+假如不用ltp分词，直接全词掩码，出来的数据依然是 类似 床前[MASK]月光的数据
