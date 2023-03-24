@@ -23,3 +23,7 @@ link：https://www.youtube.com/watch?v=VEDy-c5Sk8Y
 
 ## == weights you might want to use==
 https://drive.google.com/drive/folders/1D0K5npxx9PBsHhMe5y8fmXoAz7mOUXgx?usp=sharing
+
+## ==LTP==
+pip install ltp
+link: https://ltp.ai/docs/quickstart.html#id6
