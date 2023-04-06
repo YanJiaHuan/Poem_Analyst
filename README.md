@@ -48,3 +48,9 @@ ltp的模型是黑盒的，看起来像一个工具，用这个工具做分词�
 ![img.png|500](Image/hint2.jpg)
 好像有点问题，bert只是个encoder，没有decoder的部分，所以用bert训练出来的词向量，
 虽然是更好的，但在任务导向下，未必会在生成任务中，展现很好的效果
+
+## ==hint3==
+![img.png|500](Image/hint3.png)
+<mark style="background: #FF5582A6;">Hint:</mark> 我也可以用这个t-SNE (Maaten and Hinton, 2008) 的方法去visulaize wwm之前和之后的区别，比如说之前 H("明月")=avg(H("明")+H("月"))
+图像展示是三个点的连线
+用了wwm甚至weam的方法后，也是三个点的连线，可能会导致更短的距离，但最明显的区别是，之前的第三点是数学表示出来的，实际不存在，而用了新的训练方法后，这是一个实际存在的点
