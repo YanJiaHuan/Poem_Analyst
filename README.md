@@ -7,7 +7,7 @@ poem(especially chinese poem) lovers to better understand the imagery, emotion, 
 <font face="黑体" color=black size=6>一些想法：</font>
 
 古诗词有比较特殊的文本结构，通常的word embedding不太能够正确表示，需要在bert-wwm上重新预训练
-
+[中文全词掩码_哈工大](https://ieeexplore.ieee.org/abstract/document/9599397)  
 古诗词的tokenizer需要把特殊的意象，事件分词，避免切分意象
 
 在这基础上，有两个分支，可以做知识图谱+图像生成，或者白话翻译+图像生成
@@ -54,3 +54,4 @@ ltp的模型是黑盒的，看起来像一个工具，用这个工具做分词�
 <mark style="background: #FF5582A6;">Hint:</mark> 我也可以用这个t-SNE (Maaten and Hinton, 2008) 的方法去visulaize wwm之前和之后的区别，比如说之前 H("明月")=avg(H("明")+H("月"))
 图像展示是三个点的连线
 用了wwm甚至weam的方法后，也是三个点的连线，可能会导致更短的距离，但最明显的区别是，之前的第三点是数学表示出来的，实际不存在，而用了新的训练方法后，这是一个实际存在的点
+
