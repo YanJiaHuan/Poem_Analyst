@@ -16,6 +16,7 @@ poem(especially chinese poem) lovers to better understand the imagery, emotion, 
 update: 2023/3/24  
 分支二改成 基于chinese-bert-wwm，在古诗词上做典故识别，模型需要做到从古诗词里识别
 典故，然后将modified好的message传给chatgpt，让他解释典故  
+[典故识别参考资料](https://colips.org/conferences/ialp2019/ialp2019.com/files/papers/IALP2019_064.pdf)  
 如："庄生晓梦迷蝴蝶，望帝春心托杜鹃"-- 模型识别：梦蝶  
 "梦蝶" --> chatgpt message-->"'梦蝶'是什么典故"  
 response from chatgpt:   
