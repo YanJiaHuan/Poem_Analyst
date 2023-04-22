@@ -2,18 +2,19 @@ import torch
 from transformers import BertTokenizer, BertForMaskedLM
 from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pad_sequence
+import torch.distributed as dist
 from sklearn.model_selection import train_test_split
 import tqdm
 import json
 import os
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
-
 model_name = "bert-base-chinese"
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertForMaskedLM.from_pretrained(model_name)
 
 if torch.cuda.device_count() > 1:
+    dist.init_process_group(backend='nccl')
     model = torch.nn.DataParallel(model)
 model = model.to(device)
 
@@ -79,30 +80,30 @@ def collate_fn(batch):
     }
 
 
-train_dataset = PoemsDataset(poems_train,limit=100)
-eval_dataset = PoemsDataset(poems_test,limit=100)
+train_dataset = PoemsDataset(poems_train)
+eval_dataset = PoemsDataset(poems_test)
 
-train_loader = DataLoader(train_dataset, batch_size=1, collate_fn=collate_fn)
-eval_loader = DataLoader(eval_dataset, batch_size=1, collate_fn=collate_fn)
+train_loader = DataLoader(train_dataset, batch_size=256, collate_fn=collate_fn)
+eval_loader = DataLoader(eval_dataset, batch_size=256, collate_fn=collate_fn)
 
 
-print("Number of samples in the train dataset:", len(train_loader))
-print("Number of samples in the eval dataset:", len(eval_loader))
-
-print("First 5 samples from train dataset:")
-for i in range(5):
-    sample = train_dataset[i]
-    text = tokenizer.decode(sample["input_ids"].tolist(), skip_special_tokens=True)
-    masked_token = tokenizer.decode(sample["input_ids"][sample["masked_indices"]].tolist())
-    print(f"Text: {sample}")
-    print(f"Text: {text}")
-    print(f"Masked token: {masked_token}")
-    print(f"Labels: {sample['labels'].tolist()}")
-    print("=" * 50)
+# print("Number of samples in the train dataset:", len(train_loader))
+# print("Number of samples in the eval dataset:", len(eval_loader))
+#
+# print("First 5 samples from train dataset:")
+# for i in range(5):
+#     sample = train_dataset[i]
+#     text = tokenizer.decode(sample["input_ids"].tolist(), skip_special_tokens=True)
+#     masked_token = tokenizer.decode(sample["input_ids"][sample["masked_indices"]].tolist())
+#     print(f"Text: {sample}")
+#     print(f"Text: {text}")
+#     print(f"Masked token: {masked_token}")
+#     print(f"Labels: {sample['labels'].tolist()}")
+#     print("=" * 50)
 
 mlm_loss = torch.nn.CrossEntropyLoss(ignore_index=-100)
 optimizer = torch.optim.Adam(model.parameters(), lr=2e-5)
-epoch_num = 10
+epoch_num = 500
 for epoch in range(epoch_num):
     model.train()
     total_loss = 0
@@ -148,7 +149,7 @@ for epoch in range(epoch_num):
     print(f"Epoch {epoch + 1} - Average evaluation loss: {avg_eval_loss:.4f}")
     # Save the model and optimizer
     folder_path = "../checkpoints/"
-    if (epoch + 1) % 1 == 0:
+    if (epoch + 1) % 20 == 0:
         model_path = f"{folder_path}model_{epoch + 1}.pth"
         optimizer_path = f"{folder_path}optimizer_{epoch + 1}.pth"
         torch.save(model.state_dict(), model_path)
@@ -161,3 +162,5 @@ for epoch in range(epoch_num):
         json.dump(logs, f)
 
 
+# CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch wwm_pretrain_torch.py
+# CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun wwm_pretrain_torch.py
