@@ -57,3 +57,7 @@ ltp的模型是黑盒的，看起来像一个工具，用这个工具做分词�
 图像展示是三个点的连线
 用了wwm甚至weam的方法后，也是三个点的连线，可能会导致更短的距离，但最明显的区别是，之前的第三点是数学表示出来的，实际不存在，而用了新的训练方法后，这是一个实际存在的点
 
+## ==hint4==
+The learning rate we used in the paper was 1e-4. However, if you are doing additional steps of pre-training starting from an existing BERT checkpoint, you should use a smaller learning rate (e.g., 2e-5).
+Link: [Google-research/bert](https://github.com/google-research/bert#:~:text=The%20learning%20rate%20we%20used%20in%20the%20paper%20was%201e%2D4.%20However%2C%20if%20you%20are%20doing%20additional%20steps%20of%20pre%2Dtraining%20starting%20from%20an%20existing%20BERT%20checkpoint%2C%20you%20should%20use%20a%20smaller%20learning%20rate%20(e.g.%2C%202e%2D5).)
+
