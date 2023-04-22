@@ -1,8 +1,6 @@
-import collections
-import numpy as np
 import torch
 from transformers import (
-    BertTokenizerFast,
+    BertTokenizer,
     BertForMaskedLM,
     DataCollatorForWholeWordMask,
     TrainingArguments,
@@ -12,67 +10,42 @@ from datasets import load_dataset, Dataset
 
 device = "mps" if getattr(torch, "has_mps", False) \
     else "gpu" if torch.cuda.is_available() else "cpu"
-device = 'cpu'
 
-# Load the dataset
-poems = load_dataset("text", data_files="../Raw_data/test_wwm.txt")
-poems = poems["train"].train_test_split(test_size=0.1)
-
-class CustomBertTokenizer(BertTokenizerFast):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-
-    def _tokenize(self, text):
-        # Assuming the input text is already a list of pre-tokenized words
-        return text
-
-model_name = "hfl/chinese-bert-wwm"
-tokenizer = CustomBertTokenizer.from_pretrained(model_name)
+model_name = "bert-base-chinese"
+tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertForMaskedLM.from_pretrained(model_name).to(device)
 
-# Tokenize the dataset using whole-word masking
-def tokenize_function(examples):
-    new_text = []
-    for poem in examples:
-        poem = poem.strip()
-        words = poem.split(" ")
-        new
-    new_text = []
-    for line in text:
-        line = line.strip()
-        new_text.append(line.split(" "))
-    return tokenizer(new_text, return_special_tokens_mask=True)
+with open("../Raw_data/test_wwm.txt", "r", encoding="utf-8") as f:
+    lines = f.readlines()
 
-tokenized_poems = poems.map(tokenize_function, batched=True)
-print(tokenized_poems)
-# Create a custom Dataset
-class CustomDataset(Dataset):
-    def __init__(self, encodings):
-        self.encodings = encodings
+poems_data = [{"text": line.strip()} for line in lines]
+poems = Dataset.from_dict({"text": [d["text"] for d in poems_data]})
+poems = poems.shuffle(seed=42)
+poems = poems.train_test_split(test_size=0.2)
 
-    def __getitem__(self, idx):
-        return {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
 
-    def __len__(self):
-        return len(self.encodings["input_ids"])
 
-train_dataset = CustomDataset(tokenized_poems["train"])
-test_dataset = CustomDataset(tokenized_poems["test"])
-print(train_dataset[:2])
-# Create a data collator with whole-word masking
+train_dataset = poems["train"]
+eval_dataset = poems["test"]
+
+print("Number of samples in the train dataset:", len(train_dataset))
+print("Number of samples in the eval dataset:", len(eval_dataset))
+
+print("First 5 samples from train dataset:")
+for i in range(len(train_dataset)):
+    print(train_dataset[i])
+
 data_collator = DataCollatorForWholeWordMask(tokenizer=tokenizer, mlm_probability=0.15)
 
-# Set training arguments
 training_args = TrainingArguments(
     output_dir='output',
     overwrite_output_dir=True,
     num_train_epochs=2,
-    per_device_train_batch_size=16,
+    per_device_train_batch_size=1,
     save_steps=1000,
     save_total_limit=2,
 )
 
-# Create a Trainer
 trainer = Trainer(
     model=model,
     args=training_args,
@@ -80,5 +53,4 @@ trainer = Trainer(
     train_dataset=train_dataset,
 )
 
-# Start training
 trainer.train()
