@@ -26,8 +26,9 @@ poems_train, poems_test = train_test_split(poems_data, test_size=0.2, random_sta
 
 
 class PoemsDataset(Dataset):
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, data,limit=None):
+        self.data = data[:limit] if limit is not None else data
+        # self.data = data
 
     def __len__(self):
         return len(self.data)
@@ -41,8 +42,19 @@ class PoemsDataset(Dataset):
             max_length=512,
             truncation=True,
         )
-        input_ids = inputs["input_ids"].squeeze()
-        attention_mask = inputs["attention_mask"].squeeze()
+
+        # Apply whole word masking
+        inputs_whole_word = tokenizer.prepare_for_model(
+            inputs["input_ids"].squeeze().tolist(),
+            max_length=128,
+            padding="max_length",
+            truncation=True,
+            return_attention_mask=True,
+            return_tensors="pt",
+            whole_word_masking=True,
+        )
+        input_ids = inputs_whole_word["input_ids"].squeeze()
+        attention_mask = inputs_whole_word["attention_mask"].squeeze()
         masked_indices = torch.where(input_ids == tokenizer.mask_token_id)
         labels = input_ids.clone()
         labels[masked_indices] = -100  # ignore loss for masked tokens
@@ -52,7 +64,6 @@ class PoemsDataset(Dataset):
             "labels": labels.to(device),
             "masked_indices": masked_indices[0].to(device),
         }
-
 
 
 def collate_fn(batch):
@@ -68,20 +79,22 @@ def collate_fn(batch):
     }
 
 
-train_dataset = PoemsDataset(poems_train)
-eval_dataset = PoemsDataset(poems_test)
+train_dataset = PoemsDataset(poems_train,limit=100)
+eval_dataset = PoemsDataset(poems_test,limit=100)
 
 train_loader = DataLoader(train_dataset, batch_size=1, collate_fn=collate_fn)
 eval_loader = DataLoader(eval_dataset, batch_size=1, collate_fn=collate_fn)
 
-print("Number of samples in the train dataset:", len(train_dataset))
-print("Number of samples in the eval dataset:", len(eval_dataset))
+
+print("Number of samples in the train dataset:", len(train_loader))
+print("Number of samples in the eval dataset:", len(eval_loader))
 
 print("First 5 samples from train dataset:")
 for i in range(5):
     sample = train_dataset[i]
     text = tokenizer.decode(sample["input_ids"].tolist(), skip_special_tokens=True)
     masked_token = tokenizer.decode(sample["input_ids"][sample["masked_indices"]].tolist())
+    print(f"Text: {sample}")
     print(f"Text: {text}")
     print(f"Masked token: {masked_token}")
     print(f"Labels: {sample['labels'].tolist()}")
@@ -89,8 +102,8 @@ for i in range(5):
 
 mlm_loss = torch.nn.CrossEntropyLoss(ignore_index=-100)
 optimizer = torch.optim.Adam(model.parameters(), lr=2e-5)
-
-for epoch in range(2):
+epoch_num = 10
+for epoch in range(epoch_num):
     model.train()
     total_loss = 0
     for batch in tqdm.tqdm(train_loader):
@@ -111,7 +124,7 @@ for epoch in range(2):
     total_eval_loss = 0
     with torch.no_grad():
         for batch in tqdm.tqdm(eval_loader):
-            max_seq_length = 512
+            max_seq_length = 128
             input_ids = batch["input_ids"][0][:max_seq_length]
             attention_mask = batch["attention_mask"][0][:max_seq_length]
             labels = batch["labels"][0][:max_seq_length]
@@ -134,18 +147,17 @@ for epoch in range(2):
     avg_eval_loss = total_eval_loss / len(eval_loader)
     print(f"Epoch {epoch + 1} - Average evaluation loss: {avg_eval_loss:.4f}")
     # Save the model and optimizer
+    folder_path = "../checkpoints/"
     if (epoch + 1) % 1 == 0:
-        model_path = f"model_{epoch + 1}.pth"
-        optimizer_path = f"optimizer_{epoch + 1}.pth"
+        model_path = f"{folder_path}model_{epoch + 1}.pth"
+        optimizer_path = f"{folder_path}optimizer_{epoch + 1}.pth"
         torch.save(model.state_dict(), model_path)
         torch.save(optimizer.state_dict(), optimizer_path)
 
     # Save the logs
     logs = {"epoch": epoch + 1, "avg_train_loss": avg_train_loss, "avg_eval_loss": avg_eval_loss}
-    logs_path = f"logs_{epoch + 1}.json"
+    logs_path = f"{folder_path}logs_{epoch + 1}.json"
     with open(logs_path, "w") as f:
         json.dump(logs, f)
 
-## load model
-# model = BertForMaskedLM.from_pretrained(model_name).to(device)
-# model.load_state_dict(torch.load("model.pth"))
+
