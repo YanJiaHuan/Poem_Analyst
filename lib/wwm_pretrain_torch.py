@@ -114,13 +114,13 @@ for epoch in range(epoch_num):
             attention_mask=batch["attention_mask"],
             labels=batch["labels"],
         )
-        loss = mlm_loss(outputs.logits.view(-1, tokenizer.vocab_size), batch["labels"].view(-1,tokenizer.vocab_size))
+        loss = mlm_loss(outputs.logits.view(-1, tokenizer.vocab_size), batch["labels"].view(-1))
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
     avg_train_loss = total_loss / len(train_loader)
     print(f"Epoch {epoch + 1} - Average training loss: {avg_train_loss:.4f}")
-
+    # evaluation loop
     model.eval()
     total_eval_loss = 0
     with torch.no_grad():
@@ -130,7 +130,7 @@ for epoch in range(epoch_num):
                 attention_mask=batch["attention_mask"],
                 labels=batch["labels"],
             )
-            loss = mlm_loss(outputs.logits.view(-1, tokenizer.vocab_size), batch["labels"].view(-1,tokenizer.vocab_size))
+            loss = mlm_loss(outputs.logits.view(-1, tokenizer.vocab_size), batch["labels"].view(-1))
             total_eval_loss += loss.item()
 
     avg_eval_loss = total_eval_loss / len(eval_loader)
