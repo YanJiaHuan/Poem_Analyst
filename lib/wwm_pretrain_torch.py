@@ -138,7 +138,7 @@ for epoch in range(epoch_num):
 
     # Save the model and optimizer
     folder_path = "../checkpoints/"
-    if (epoch + 1) % 20 == 0:
+    if (epoch + 1) % 1 == 0:
         model_path = f"{folder_path}model_{epoch + 1}.pth"
         optimizer_path = f"{folder_path}optimizer_{epoch + 1}.pth"
         torch.save(model.state_dict(), model_path)
