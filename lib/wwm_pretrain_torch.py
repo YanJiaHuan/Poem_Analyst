@@ -83,8 +83,8 @@ def collate_fn(batch):
 train_dataset = PoemsDataset(poems_train)
 eval_dataset = PoemsDataset(poems_test)
 
-train_loader = DataLoader(train_dataset, batch_size=256, collate_fn=collate_fn)
-eval_loader = DataLoader(eval_dataset, batch_size=256, collate_fn=collate_fn)
+train_loader = DataLoader(train_dataset, batch_size=128, collate_fn=collate_fn)
+eval_loader = DataLoader(eval_dataset, batch_size=128, collate_fn=collate_fn)
 
 
 # print("Number of samples in the train dataset:", len(train_loader))
@@ -103,7 +103,7 @@ eval_loader = DataLoader(eval_dataset, batch_size=256, collate_fn=collate_fn)
 
 mlm_loss = torch.nn.CrossEntropyLoss(ignore_index=-100)
 optimizer = torch.optim.Adam(model.parameters(), lr=2e-5)
-epoch_num = 5
+epoch_num = 50
 for epoch in range(epoch_num):
     model.train()
     total_loss = 0
@@ -138,7 +138,7 @@ for epoch in range(epoch_num):
 
     # Save the model and optimizer
     folder_path = "../checkpoints/"
-    if (epoch + 1) % 1 == 0:
+    if (epoch + 1) % 10 == 0:
         model_path = f"{folder_path}model_{epoch + 1}.pth"
         optimizer_path = f"{folder_path}optimizer_{epoch + 1}.pth"
         torch.save(model.state_dict(), model_path)
@@ -151,5 +151,5 @@ for epoch in range(epoch_num):
         json.dump(logs, f)
 
 
-# CUDA_VISIBLE_DEVICES=0,1,2,3 python -m torch.distributed.launch wwm_pretrain_torch.py
+# CUDA_VISIBLE_DEVICES=1,2 python -m torch.distributed.launch wwm_pretrain_torch.py
 # CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun wwm_pretrain_torch.py
