@@ -40,7 +40,7 @@ class PoemsDataset(Dataset):
             add_special_tokens=True,
             return_attention_mask=True,
             return_tensors="pt",
-            max_length=512,
+            max_length=128,
             truncation=True,
         )
 
@@ -103,7 +103,7 @@ eval_loader = DataLoader(eval_dataset, batch_size=256, collate_fn=collate_fn)
 
 mlm_loss = torch.nn.CrossEntropyLoss(ignore_index=-100)
 optimizer = torch.optim.Adam(model.parameters(), lr=2e-5)
-epoch_num = 500
+epoch_num = 5
 for epoch in range(epoch_num):
     model.train()
     total_loss = 0
@@ -114,7 +114,7 @@ for epoch in range(epoch_num):
             attention_mask=batch["attention_mask"],
             labels=batch["labels"],
         )
-        loss = mlm_loss(outputs.logits.view(-1, tokenizer.vocab_size), batch["labels"].view(-1))
+        loss = mlm_loss(outputs.logits.view(-1, tokenizer.vocab_size), batch["labels"].view(-1,tokenizer.vocab_size))
         loss.backward()
         optimizer.step()
         total_loss += loss.item()
@@ -125,28 +125,17 @@ for epoch in range(epoch_num):
     total_eval_loss = 0
     with torch.no_grad():
         for batch in tqdm.tqdm(eval_loader):
-            max_seq_length = 128
-            input_ids = batch["input_ids"][0][:max_seq_length]
-            attention_mask = batch["attention_mask"][0][:max_seq_length]
-            labels = batch["labels"][0][:max_seq_length]
-
-            if len(input_ids) < max_seq_length:
-                # Pad input sequence if it is shorter than max_seq_length
-                padding_length = max_seq_length - len(input_ids)
-                input_ids = torch.cat([input_ids, torch.zeros(padding_length, dtype=torch.long)])
-                attention_mask = torch.cat([attention_mask, torch.zeros(padding_length, dtype=torch.long)])
-                labels = torch.cat([labels, torch.zeros(padding_length, dtype=torch.long)])
-
             outputs = model(
-                input_ids=input_ids.unsqueeze(0).to(device),
-                attention_mask=attention_mask.unsqueeze(0).to(device),
-                labels=labels.unsqueeze(0).to(device),
+                input_ids=batch["input_ids"],
+                attention_mask=batch["attention_mask"],
+                labels=batch["labels"],
             )
-
-            loss = mlm_loss(outputs.logits.view(-1, tokenizer.vocab_size), batch["labels"].view(-1))
+            loss = mlm_loss(outputs.logits.view(-1, tokenizer.vocab_size), batch["labels"].view(-1,tokenizer.vocab_size))
             total_eval_loss += loss.item()
+
     avg_eval_loss = total_eval_loss / len(eval_loader)
     print(f"Epoch {epoch + 1} - Average evaluation loss: {avg_eval_loss:.4f}")
+
     # Save the model and optimizer
     folder_path = "../checkpoints/"
     if (epoch + 1) % 20 == 0:
