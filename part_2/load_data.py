@@ -7,7 +7,7 @@ def load_data_for_train(path_data, TO_CLASSICAL):
     DATA = Path(path_data)
 
     # load 路径下 所有data文件夹下的文件
-    all_file = list(DATA.rglob("data/*"))
+    all_file = list(DATA.rglob("data_small/*"))
 
     print(f"\n load all file: {all_file}")
 

@@ -18,11 +18,11 @@ path_data： "_path/data/所有的data文件"   _path 的部分作为 path_data
 path_checkpoint： "_path/checkpoint"    _path/checkpoint 的部分作为 path_checkpoint
 path_checkpoint_best： 想要验证的模型(.ckpt 文件) 例如 - "/content/gdrive/MyDrive/nlp_project/yuan-main/checkpoint/epoch=1-step=3178.ckpt"
 """
-path_data = ""
-path_checkpoint = ""
-path_checkpoint_best = ""
+path_data = "../Raw_data"
+path_checkpoint = "../checkpoints/Translation"
+# path_checkpoint_best = "../checkpoints/Translation"
 
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 """## Config"""
 
 TO_CLASSICAL = False
@@ -34,6 +34,8 @@ df = load_data_for_train(path_data, TO_CLASSICAL)
 # we find a English parsing encoder, as a pretrained bert is good at understanding english
 # BERT is short for Bidirectional **Encoder** Representations from Transformers, which consists fully of encoder blocks
 ENCODER_PRETRAINED = "bert-base-chinese"
+save_model_path = "../checkpoints/model_5.pth"
+saved_states = torch.load(save_model_path,map_location=device)
 # we find a Chinese writing model for decoder, as decoder is the part of the model that can write stuff
 DECODER_PRETRAINED = "uer/gpt2-chinese-poem"
 
@@ -49,7 +51,7 @@ decoder_tokenizer = AutoTokenizer.from_pretrained(
 data_module = Seq2SeqData(
     df, encoder_tokenizer,
     decoder_tokenizer,
-    batch_size=12,
+    batch_size=32,
     max_len=256,
     no_punkt=False if TO_CLASSICAL else True,)
 data_module.setup()
@@ -99,21 +101,21 @@ save = pl.callbacks.ModelCheckpoint(
 )
 
 trainer = pl.Trainer(
-    # devices=1,
+    # devices=-1,
     max_epochs=10,
     callbacks=[save],
 )
 
 
-trainer.fit(module, datamodule=data_module)
+# trainer.fit(module, datamodule=data_module)
 
 
 # test
 
-print(f"Best model path: {save.best_model_path}")
-
-module.load_state_dict(
-    torch.load(str(path_checkpoint_best), map_location="cpu")['state_dict'])
+# print(f"Best model path: {save.best_model_path}")
+#
+# module.load_state_dict(
+#     torch.load(str(path_checkpoint_best), map_location="cpu")['state_dict'])
 # 如果有 train 完的话，用下面这个代码 导入 beat model
 # module.load_state_dict(
 #     torch.load(str(save.best), map_location="cpu")['state_dict'])
@@ -147,5 +149,6 @@ def inference(lead):
     print(pred)
     return tokenizer.batch_decode(pred, skip_special_tokens=True)
 
+# CUDA_VISIBLE_DEVICES=0 python train_test.py
 
-
+# scp -r jiahuan@10.2.56.139:/home/jiahuan/test/poem/checkpoints/model_5.pth /Users/alinlp/PycharmProjects/Poem_Analyst/
