@@ -70,11 +70,11 @@ def main():
     model = BertForMaskedLM.from_pretrained(model_name).to(device)
     tokenizer = BertTokenizer.from_pretrained(model_name)
     # Load the saved model parameters
-    saved_model_path = "../checkpoints/model_1.pth"
-    saved_state = torch.load(saved_model_path, map_location=device)
+    # saved_model_path = "../checkpoints/model_1.pth"
+    # saved_state = torch.load(saved_model_path, map_location=device)
 
     # Apply the loaded state to the new model instance
-    model.load_state_dict(saved_state)
+    # model.load_state_dict(saved_state)
     model.eval()  # Set the model to evaluation mode
 
     sentence_mask = "欲 出 未 出 光 辣 达, 千 山 万 山 如 火 发. 须 臾 走 向 天 上 来, 逐 却 残 星 赶 [MASK][MASK] ."
