@@ -1,0 +1,13 @@
+pip install forgebox
+pip install pytorch-lightning
+pip install gcutils
+pip install python-env-utils
+pip install rglob
+pip install tqdm
+pip install transformers==4.11.0
+
+在 train_test 里把 path 改一下
+
+
+run:
+python train_test.py
