@@ -1,5 +1,5 @@
 import torch
-from transformers import BertTokenizer, BertForMaskedLM
+from transformers import BertTokenizer, BertForMaskedLM, BertModel, BertConfig
 from torch.utils.data import Dataset, DataLoader
 from torch.nn.utils.rnn import pad_sequence
 import torch.distributed as dist
@@ -12,7 +12,7 @@ device = "cuda" if torch.cuda.is_available() else "cpu"
 model_name = "bert-base-chinese"
 tokenizer = BertTokenizer.from_pretrained(model_name)
 model = BertForMaskedLM.from_pretrained(model_name)
-
+config = BertConfig.from_pretrained(model_name)
 if torch.cuda.device_count() > 1:
     dist.init_process_group(backend='nccl')
     model = torch.nn.DataParallel(model)
@@ -103,7 +103,7 @@ eval_loader = DataLoader(eval_dataset, batch_size=128, collate_fn=collate_fn)
 
 mlm_loss = torch.nn.CrossEntropyLoss(ignore_index=-100)
 optimizer = torch.optim.Adam(model.parameters(), lr=2e-5)
-epoch_num = 50
+epoch_num = 1
 for epoch in range(epoch_num):
     model.train()
     total_loss = 0
@@ -138,11 +138,18 @@ for epoch in range(epoch_num):
 
     # Save the model and optimizer
     folder_path = "../checkpoints/"
-    if (epoch + 1) % 10 == 0:
-        model_path = f"{folder_path}model_{epoch + 1}.pth"
-        optimizer_path = f"{folder_path}optimizer_{epoch + 1}.pth"
-        torch.save(model.state_dict(), model_path)
-        torch.save(optimizer.state_dict(), optimizer_path)
+    bert_model = model.module.bert
+    # Remove the classification head
+    bert_model.cls = BertModel._cls_type(
+        torch.nn.Identity()
+    )
+    bert_model.pooler = torch.nn.Sequential(
+        torch.nn.Linear(config.hidden_size, config.hidden_size),
+        torch.nn.Tanh(),
+    )
+    if (epoch + 1) % 1 == 0:
+        model_path = f"{folder_path}model_round2_{epoch + 1}.pth"
+        torch.save(bert_model, model_path)
 
     # Save the logs
     logs = {"epoch": epoch + 1, "avg_train_loss": avg_train_loss, "avg_eval_loss": avg_eval_loss}
@@ -151,5 +158,5 @@ for epoch in range(epoch_num):
         json.dump(logs, f)
 
 
-# CUDA_VISIBLE_DEVICES=1,2 python -m torch.distributed.launch wwm_pretrain_torch.py
+# CUDA_VISIBLE_DEVICES=0,1 python -m torch.distributed.launch wwm_pretrain_torch.py
 # CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun wwm_pretrain_torch.py

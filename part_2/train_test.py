@@ -4,10 +4,12 @@ Dataset: https://github.com/BangBOOM/Classical-Chinese
 """
 
 import torch
+import torch.nn as nn
 from load_data import *
 from model import *
 from transformers import (
-    AutoTokenizer,
+    BertModel, BertTokenizer, BertConfig,
+    AutoModel, AutoTokenizer,
     EncoderDecoderModel
 )
 import pytorch_lightning as pl
@@ -30,21 +32,37 @@ df = load_data_for_train(path_data, TO_CLASSICAL)
 
 
 """### Loading tokenizer"""
-
-# we find a English parsing encoder, as a pretrained bert is good at understanding english
-# BERT is short for Bidirectional **Encoder** Representations from Transformers, which consists fully of encoder blocks
+# Pre-trained models
 ENCODER_PRETRAINED = "bert-base-chinese"
-save_model_path = "../checkpoints/model_5.pth"
-saved_states = torch.load(save_model_path,map_location=device)
-# we find a Chinese writing model for decoder, as decoder is the part of the model that can write stuff
 DECODER_PRETRAINED = "uer/gpt2-chinese-poem"
 
-encoder_tokenizer = AutoTokenizer.from_pretrained(ENCODER_PRETRAINED)
+# Load the saved model parameters
+save_model_path = "../checkpoints/model_5.pth"
 
-decoder_tokenizer = AutoTokenizer.from_pretrained(
-    ENCODER_PRETRAINED  # notice we use the BERT's tokenizer here
-)
+# Initialize the encoder and decoder
+encoder = BertModel.from_pretrained(ENCODER_PRETRAINED)
+decoder = AutoModel.from_pretrained(DECODER_PRETRAINED)
 
+# Load the saved state into the encoder
+saved_state = torch.load(save_model_path, map_location='cpu')
+fixed_state = {k.replace("module.bert.", ""): v for k, v in saved_state.items()}
+encoder.load_state_dict(fixed_state)
+
+encoder_after  = encoder.bert
+# Add a pooler layer if it's missing
+config = BertConfig.from_pretrained(ENCODER_PRETRAINED)
+if not hasattr(encoder_after, 'pooler'):
+    encoder_after.pooler = nn.Sequential(
+        nn.Linear(config.hidden_size, config.hidden_size),
+        nn.Tanh()
+    )
+
+# Use the extracted BERT model as an encoder for your downstream tasks
+encoder_after = encoder_after.to(device)
+
+# Initialize the tokenizer
+encoder_tokenizer = BertTokenizer.from_pretrained(ENCODER_PRETRAINED)
+decoder_tokenizer = AutoTokenizer.from_pretrained(DECODER_PRETRAINED)
 
 """### Pytoch Dataset"""
 
@@ -82,11 +100,11 @@ We create a seq2seq model by using pretrained encoder + pretrained decoder
 """
 
 # loading pretrained model
-encoder_decoder = EncoderDecoderModel.from_encoder_decoder_pretrained(
-    encoder_pretrained_model_name_or_path=ENCODER_PRETRAINED,
-    decoder_pretrained_model_name_or_path=DECODER_PRETRAINED,
-)
-
+# encoder_decoder = EncoderDecoderModel.from_encoder_decoder_pretrained(
+#     encoder_pretrained_model_name_or_path=encoder,
+#     decoder_pretrained_model_name_or_path=DECODER_PRETRAINED,
+# )
+encoder_decoder = EncoderDecoderModel(encoder=encoder_after, decoder=decoder)
 
 module = Seq2SeqTrain(encoder_decoder)
 
@@ -128,7 +146,7 @@ model = model.eval()
 
 # model.push_to_hub("raynardj/keywords-cangtou-chinese-poetry")
 
-tokenizer = AutoTokenizer.from_pretrained("bert-base-chinese")
+tokenizer = BertTokenizer.from_pretrained("bert-base-chinese")
 
 
 def inference(lead):
@@ -148,6 +166,12 @@ def inference(lead):
         )
     print(pred)
     return tokenizer.batch_decode(pred, skip_special_tokens=True)
+
+inf = inference('又且驱迫邮传，征求饩廪，折辱州县，闭偿逋负，至仓之日，变鬻以归。官司交忿，农民窘窜。')
+# inf = inference('"梦蝶"是一个源自中国哲学家庄子的典故')
+print("*"*20)
+print(inf)
+
 
 # CUDA_VISIBLE_DEVICES=0 python train_test.py
 
