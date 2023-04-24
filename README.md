@@ -2,8 +2,9 @@
 This is a course project from NUS-ISS about Practical Language Processing. We are dedicated to help 
 poem(especially chinese poem) lovers to better understand the imagery, emotion, events mentioned in poems.
 
-![img.png|500](Image/img.png)
+![img.png|500](Image/img.png)  
 
+[Link to checkpoints](https://drive.google.com/drive/folders/11CiEeivUyZEVpMbPuwu3Hj5cZGwgW_PR?usp=sharing)
 <font face="黑体" color=black size=6>一些想法：</font>
 
 古诗词有比较特殊的文本结构，通常的word embedding不太能够正确表示，需要在bert-wwm上重新预训练  
