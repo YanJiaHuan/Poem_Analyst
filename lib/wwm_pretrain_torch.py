@@ -137,19 +137,12 @@ for epoch in range(epoch_num):
     print(f"Epoch {epoch + 1} - Average evaluation loss: {avg_eval_loss:.4f}")
 
     # Save the model and optimizer
-    folder_path = "../checkpoints/"
-    bert_model = model.module.bert
-    # Remove the classification head
-    bert_model.cls = BertModel._cls_type(
-        torch.nn.Identity()
-    )
-    bert_model.pooler = torch.nn.Sequential(
-        torch.nn.Linear(config.hidden_size, config.hidden_size),
-        torch.nn.Tanh(),
-    )
+    folder_path = "../checkpoints/model_round2/"
     if (epoch + 1) % 1 == 0:
-        model_path = f"{folder_path}model_round2_{epoch + 1}.pth"
-        torch.save(bert_model, model_path)
+        if isinstance(model, torch.nn.DataParallel):
+            model.module.save_pretrained(folder_path)
+        else:
+            model.save_pretrained(folder_path)
 
     # Save the logs
     logs = {"epoch": epoch + 1, "avg_train_loss": avg_train_loss, "avg_eval_loss": avg_eval_loss}
