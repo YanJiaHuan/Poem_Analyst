@@ -33,35 +33,36 @@ df = load_data_for_train(path_data, TO_CLASSICAL)
 
 """### Loading tokenizer"""
 # Pre-trained models
-ENCODER_PRETRAINED = "bert-base-chinese"
+ENCODER_PRETRAINED = "../checkpoints/model_round2/"
 DECODER_PRETRAINED = "uer/gpt2-chinese-poem"
-
+tokenizer_path = "bert-base-chinese"
 # Load the saved model parameters
-save_model_path = "../checkpoints/model_5.pth"
+
 
 # Initialize the encoder and decoder
 encoder = BertModel.from_pretrained(ENCODER_PRETRAINED)
 decoder = AutoModel.from_pretrained(DECODER_PRETRAINED)
 
 # Load the saved state into the encoder
-saved_state = torch.load(save_model_path, map_location='cpu')
-fixed_state = {k.replace("module.bert.", ""): v for k, v in saved_state.items()}
-encoder.load_state_dict(fixed_state)
+#
+# fixed_state = {k.replace("module.bert.", ""): v for k, v in saved_state.items()}
+# encoder.load_state_dict(fixed_state)
 
-encoder_after  = encoder.bert
+# encoder_after  = encoder.bert
 # Add a pooler layer if it's missing
 config = BertConfig.from_pretrained(ENCODER_PRETRAINED)
-if not hasattr(encoder_after, 'pooler'):
-    encoder_after.pooler = nn.Sequential(
+
+if not hasattr(encoder, 'pooler'):
+    encoder.pooler = nn.Sequential(
         nn.Linear(config.hidden_size, config.hidden_size),
         nn.Tanh()
     )
 
 # Use the extracted BERT model as an encoder for your downstream tasks
-encoder_after = encoder_after.to(device)
-
+encoder_after = encoder.to(device)
+# print(encoder_after.state_dict().keys())
 # Initialize the tokenizer
-encoder_tokenizer = BertTokenizer.from_pretrained(ENCODER_PRETRAINED)
+encoder_tokenizer = BertTokenizer.from_pretrained(tokenizer_path)
 decoder_tokenizer = AutoTokenizer.from_pretrained(DECODER_PRETRAINED)
 
 """### Pytoch Dataset"""
@@ -100,11 +101,16 @@ We create a seq2seq model by using pretrained encoder + pretrained decoder
 """
 
 # loading pretrained model
-# encoder_decoder = EncoderDecoderModel.from_encoder_decoder_pretrained(
-#     encoder_pretrained_model_name_or_path=encoder,
-#     decoder_pretrained_model_name_or_path=DECODER_PRETRAINED,
-# )
-encoder_decoder = EncoderDecoderModel(encoder=encoder_after, decoder=decoder)
+encoder_decoder = EncoderDecoderModel.from_encoder_decoder_pretrained(
+    encoder_pretrained_model_name_or_path=ENCODER_PRETRAINED,
+    decoder_pretrained_model_name_or_path=DECODER_PRETRAINED,
+)
+
+
+
+
+
+# encoder_decoder = EncoderDecoderModel(encoder=encoder_after, decoder=decoder)
 
 module = Seq2SeqTrain(encoder_decoder)
 
@@ -139,19 +145,22 @@ trainer = pl.Trainer(
 #     torch.load(str(save.best), map_location="cpu")['state_dict'])
 
 model = encoder_decoder
-model = model.cpu()
+model = model.to(device)
 model = model.eval()
 
 # model.save_pretrained(hub/"kw-lead-po")
 
 # model.push_to_hub("raynardj/keywords-cangtou-chinese-poetry")
 
-tokenizer = BertTokenizer.from_pretrained("bert-base-chinese")
+tokenizer = BertTokenizer.from_pretrained(ENCODER_PRETRAINED)
 
 
 def inference(lead):
     leading = f"《{lead}》"
+    print(leading)
     input_ids = tokenizer(leading, return_tensors='pt', ).input_ids
+    print(input_ids)
+    input_ids = input_ids.to(device)
     # print(tokenizer.sep_token_id)
     with torch.no_grad():
         pred = model.generate(
@@ -163,9 +172,16 @@ def inference(lead):
             bos_token_id=tokenizer.sep_token_id,
             pad_token_id=tokenizer.pad_token_id,
             eos_token_id=tokenizer.sep_token_id,
+            # use_cache=True,
         )
     print(pred)
-    return tokenizer.batch_decode(pred, skip_special_tokens=True)
+    print(f"bert:{tokenizer.batch_decode(pred, skip_special_tokens=True)}")
+    print(f"gpt:{decoder_tokenizer.batch_decode(pred, skip_special_tokens=True)}")
+    # return tokenizer.batch_decode(pred, skip_special_tokens=True)
+    return decoder_tokenizer.batch_decode(pred, skip_special_tokens=True)
+
+
+
 
 inf = inference('又且驱迫邮传，征求饩廪，折辱州县，闭偿逋负，至仓之日，变鬻以归。官司交忿，农民窘窜。')
 # inf = inference('"梦蝶"是一个源自中国哲学家庄子的典故')
@@ -173,6 +189,6 @@ print("*"*20)
 print(inf)
 
 
-# CUDA_VISIBLE_DEVICES=0 python train_test.py
+# CUDA_VISIBLE_DEVICES=2 python train_test.py
 
 # scp -r jiahuan@10.2.56.139:/home/jiahuan/test/poem/checkpoints/model_5.pth /Users/alinlp/PycharmProjects/Poem_Analyst/
