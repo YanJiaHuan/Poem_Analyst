@@ -62,7 +62,7 @@ if not hasattr(encoder, 'pooler'):
 encoder_after = encoder.to(device)
 # print(encoder_after.state_dict().keys())
 # Initialize the tokenizer
-encoder_tokenizer = BertTokenizer.from_pretrained(tokenizer_path)
+encoder_tokenizer = BertTokenizer.from_pretrained(ENCODER_PRETRAINED)
 decoder_tokenizer = AutoTokenizer.from_pretrained(DECODER_PRETRAINED)
 
 """### Pytoch Dataset"""
