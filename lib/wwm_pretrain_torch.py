@@ -8,6 +8,8 @@ import tqdm
 import json
 import os
 
+
+
 device = "cuda" if torch.cuda.is_available() else "cpu"
 model_name = "bert-base-chinese"
 tokenizer = BertTokenizer.from_pretrained(model_name)
@@ -103,7 +105,7 @@ eval_loader = DataLoader(eval_dataset, batch_size=128, collate_fn=collate_fn)
 
 mlm_loss = torch.nn.CrossEntropyLoss(ignore_index=-100)
 optimizer = torch.optim.Adam(model.parameters(), lr=2e-5)
-epoch_num = 1
+epoch_num = 50
 for epoch in range(epoch_num):
     model.train()
     total_loss = 0
@@ -138,11 +140,12 @@ for epoch in range(epoch_num):
 
     # Save the model and optimizer
     folder_path = "../checkpoints/model_round2/"
-    if (epoch + 1) % 1 == 0:
+    if (epoch + 1) % 10 == 0:
         if isinstance(model, torch.nn.DataParallel):
             model.module.save_pretrained(folder_path)
         else:
             model.save_pretrained(folder_path)
+        tokenizer.save_pretrained(folder_path)
 
     # Save the logs
     logs = {"epoch": epoch + 1, "avg_train_loss": avg_train_loss, "avg_eval_loss": avg_eval_loss}
