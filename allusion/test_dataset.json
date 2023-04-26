@@ -1,0 +1,44 @@
+{
+    "data": [
+        {
+            "target_sentence": "孤帆早晚离三楚，闲理钿筝愁几许？",
+            "candidate_allusion": "三楚",
+            "label": 1.0
+        },
+        {
+            "target_sentence": "相见无言还有恨，几回拚却又思量，月窗香径梦悠飏。",
+            "candidate_allusion": "三楚",
+            "label": 0.0
+        },
+        {
+            "target_sentence": "夜深斜傍枕前来，影徘徊。",
+            "candidate_allusion": "影徘徊",
+            "label": 1.0
+        },
+        {
+            "target_sentence": "春山夜静，愁闻洞天疏磬。",
+            "candidate_allusion": "影徘徊",
+            "label": 0.0
+        },
+        {
+            "target_sentence": "休晕绣，罢吹萧，貌逐残花暗凋。",
+            "candidate_allusion": "晕绣",
+            "label": 1.0
+        },
+        {
+            "target_sentence": "避暑信船轻浪里，闲游戏，夹岸荔枝红蘸水。",
+            "candidate_allusion": "晕绣",
+            "label": 0.0
+        },
+        {
+            "target_sentence": "同心犹结旧裙腰，忍辜风月度良宵。",
+            "candidate_allusion": "辜",
+            "label": 1.0
+        },
+        {
+            "target_sentence": "绣帘高轴临塘看，雨翻荷芰真珠散。",
+            "candidate_allusion": "辜",
+            "label": 0.0
+        }
+    ]
+}

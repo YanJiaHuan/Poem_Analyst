@@ -3,8 +3,31 @@ This is a course project from NUS-ISS about Practical Language Processing. We ar
 poem(especially chinese poem) lovers to better understand the imagery, emotion, events mentioned in poems.
 
 ![img.png|500](Image/img.png)  
+Date: 2023/4/20  
+## Project Outline
+The whole system has the following structure:  
+![img.png|500](Image/outline.png)  
+**Step 1:** Domain adaptation: We begin with the Bert-base-Chinese pre-trained model, which has been trained on a large Chinese corpus, including content from Chinese Wikipedia. While this model may have some understanding of Chinese poetry, our goal is to create a language model with expertise in this domain. To achieve this, we use continuous training and apply a specific pre-training strategy called whole-word masking.
 
-[Link to checkpoints](https://drive.google.com/drive/folders/11CiEeivUyZEVpMbPuwu3Hj5cZGwgW_PR?usp=sharing)
+**Step 2:** Text translation, we use our self-trained Bert model as the encoder and a GPT-2 model as the decoder to perform a text-to-text task.
+
+**Step 3:** Allusion recognition, we utilize the Bert-poetry model again for a downstream task focused on allusion recognition. Allusions are fascinating linguistic phenomena that resemble quotations or callbacks. We will also incorporate ChatGPT to help explain the allusions we identify.
+
+## Visulaization in step 1
+![img.png|500](Image/T-SNE.png)  
+This is the demonstration of the T-SNE visualization of the embeddings of the words in the poem.  
+Inside the green box are associated words often showcase in model Chinese corpus,
+while the red box are the words that are more likely to appear in the poem. After domain adaption,
+The distance of the words in the poem is much closer than the words in the model corpus.
+
+## Transfer learning for step 2, step 3
+![img.png|500](Image/Transfer.png)  
+Pop the cls layer.
+
+
+
+---
+[Link to checkpoints](https://drive.google.com/drive/folders/11CiEeivUyZEVpMbPuwu3Hj5cZGwgW_PR?usp=sharing)  
 <font face="黑体" color=black size=6>一些想法：</font>
 
 古诗词有比较特殊的文本结构，通常的word embedding不太能够正确表示，需要在bert-wwm上重新预训练  
