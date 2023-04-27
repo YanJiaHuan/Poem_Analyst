@@ -11,7 +11,7 @@ output_dir = "../output"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-
+####################This is the T-SNE for the BERT model####################
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
