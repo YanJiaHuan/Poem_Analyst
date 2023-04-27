@@ -19,13 +19,7 @@ model_name = "bert-base-chinese"
 # model_name = "../checkpoints/model_round2/"
 model = BertForMaskedLM.from_pretrained(model_name).to(device)
 tokenizer = BertTokenizer.from_pretrained(model_name)
-#
-# # Load the saved model parameters
-# saved_model_path = "../checkpoints/model_1.pth"
-# saved_state = torch.load(saved_model_path, map_location=device)
-#
-# # Apply the loaded state to the new model instance
-# model.load_state_dict(saved_state)
+
 model.eval()  # Set the model to evaluation mode
 
 def extract_embeddings(model, tokenizer, words):
