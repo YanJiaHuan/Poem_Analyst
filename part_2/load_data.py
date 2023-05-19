@@ -7,7 +7,7 @@ def load_data_for_train(path_data, TO_CLASSICAL):
     DATA = Path(path_data)
 
     # load 路径下 所有data文件夹下的文件
-    all_file = list(DATA.rglob("data_small/*"))
+    all_file = list(DATA.rglob("data/*"))
 
     print(f"\n load all file: {all_file}")
 
@@ -33,7 +33,11 @@ def load_data_for_train(path_data, TO_CLASSICAL):
         for pair in tqdm(pairs, leave=False):
             file1, file2 = pair
             lines1 = open_file_to_lines(file1)
+            if len(lines1) > 10:
+                lines1 = lines1[:10]
             lines2 = open_file_to_lines(file2)
+            if len(lines2) > 10:
+                lines2 = lines2[:10]
             chunks.append(pd.DataFrame({"classical": lines1, "modern": lines2}))
         return pd.concat(chunks).sample(frac=1.).reset_index(drop=True)
 
