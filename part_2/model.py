@@ -179,5 +179,5 @@ class Seq2SeqTrain(pl.LightningModule):
 
         return torch.optim.Adam(
             encoder_params + decoder_params,
-            lr=1e-3,
+            lr=2e-3,
         )

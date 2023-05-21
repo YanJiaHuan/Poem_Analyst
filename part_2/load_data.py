@@ -33,11 +33,11 @@ def load_data_for_train(path_data, TO_CLASSICAL):
         for pair in tqdm(pairs, leave=False):
             file1, file2 = pair
             lines1 = open_file_to_lines(file1)
-            if len(lines1) > 10:
-                lines1 = lines1[:10]
+            if len(lines1) > 1500:
+                lines1 = lines1[:1500]
             lines2 = open_file_to_lines(file2)
-            if len(lines2) > 10:
-                lines2 = lines2[:10]
+            if len(lines2) > 1500:
+                lines2 = lines2[:1500]
             chunks.append(pd.DataFrame({"classical": lines1, "modern": lines2}))
         return pd.concat(chunks).sample(frac=1.).reset_index(drop=True)
 

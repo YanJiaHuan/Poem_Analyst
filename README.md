@@ -3,7 +3,7 @@ This is a course project from NUS-ISS about Practical Language Processing. We ar
 poem(especially chinese poem) lovers to better understand the imagery, emotion, events mentioned in poems.
 
 ![img.png|500](Image/img.png)  
-Date: 2023/4/20  
+Date: 2023/5/20  
 ## Project Outline
 The whole system has the following structure:  
 ![img.png|500](Image/outline.png)  
@@ -47,41 +47,52 @@ response from chatgpt:
 "梦蝶"是一个源自中国哲学家庄子的典故，它是指庄子的一个著名哲学思想：庄周梦蝶。这个典故来自于庄子的《庄子·齐物论》一篇，描述了庄子的一个经典哲学观念。
 这个典故的核心思想是关于现实与幻觉之间的边界，以及主体与客体之间的关系。故事讲述了庄子梦见自己变成了一只蝴蝶，飞舞自在，尽情地享受生活。当他醒来后，发现自己还是庄子。于是他开始思考：他究竟是庄子梦见了蝴蝶，还是蝴蝶在梦中变成了庄子？
 
-## ==安装huggingface==
-conda install -c huggingface transformers
-这个得在pytorch或者tensorflow支持下运行
-根据自己电脑去https://pytorch.org/get-started/locally/安装pytorch
-conda install pytorch torchvision torchaudio -c pytorch
+## Environment setup
+```commandline
+pip install forgebox
+pip install pytorch-lightning
+pip install gcutils
+pip install python-env-utils
+pip install rglob
+pip install tqdm
+pip install transformers==4.11.0
+```
+## How to run the model
+```commandline
+python main.py 
+```
+Make sure you are in right path, and you can run all the models with same command in shell.
 
-## ==mac 装torch with GPU==
+## Licence
+This project is licensed under the terms of the MIT License.
+
+
+
+## mac 装torch with GPU
 link：https://www.youtube.com/watch?v=VEDy-c5Sk8Y
 
-## == weights you might want to use==
+## weights you might want to use
 https://drive.google.com/drive/folders/1D0K5npxx9PBsHhMe5y8fmXoAz7mOUXgx?usp=sharing
 
-## ==LTP==
+## LTP
 pip install ltp
 link: https://ltp.ai/docs/quickstart.html#id6
 
-## ==hint1==
-![img.png|500](Image/hint1.png)
+---
+
+## hint1
 ltp的模型是黑盒的，看起来像一个工具，用这个工具做分词，基于分词结果做masking，这样
 就有可能有类似 床前[MASK][MASK]光 的训练数据，模型要学会预测 "明月"
 
 假如不用ltp分词，直接全词掩码，出来的数据依然是 类似 床前[MASK]月光的数据
 
-## ==hint2==
-![img.png|500](Image/hint2.jpg)
-好像有点问题，bert只是个encoder，没有decoder的部分，所以用bert训练出来的词向量，
-虽然是更好的，但在任务导向下，未必会在生成任务中，展现很好的效果
-
-## ==hint3==
+## hint2
 ![img.png|500](Image/hint3.png)
 <mark style="background: #FF5582A6;">Hint:</mark> 我也可以用这个t-SNE (Maaten and Hinton, 2008) 的方法去visulaize wwm之前和之后的区别，比如说之前 H("明月")=avg(H("明")+H("月"))
 图像展示是三个点的连线
 用了wwm甚至weam的方法后，也是三个点的连线，可能会导致更短的距离，但最明显的区别是，之前的第三点是数学表示出来的，实际不存在，而用了新的训练方法后，这是一个实际存在的点
 
-## ==hint4==
+## hint3
 The learning rate we used in the paper was 1e-4. However, if you are doing additional steps of pre-training starting from an existing BERT checkpoint, you should use a smaller learning rate (e.g., 2e-5).
 Link: [Google-research/bert](https://github.com/google-research/bert#:~:text=The%20learning%20rate%20we%20used%20in%20the%20paper%20was%201e%2D4.%20However%2C%20if%20you%20are%20doing%20additional%20steps%20of%20pre%2Dtraining%20starting%20from%20an%20existing%20BERT%20checkpoint%2C%20you%20should%20use%20a%20smaller%20learning%20rate%20(e.g.%2C%202e%2D5).)
 

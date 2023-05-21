@@ -51,7 +51,7 @@ decoder_tokenizer = AutoTokenizer.from_pretrained(
 data_module = Seq2SeqData(
     df, encoder_tokenizer,
     decoder_tokenizer,
-    batch_size=24,
+    batch_size=48,
     max_len=256,
     no_punkt=False if TO_CLASSICAL else True,)
 data_module.setup()
@@ -89,7 +89,8 @@ encoder_decoder = EncoderDecoderModel.from_encoder_decoder_pretrained(
 
 
 module = Seq2SeqTrain(encoder_decoder)
-
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+module.to(device)
 """## Training"""
 
 save = pl.callbacks.ModelCheckpoint(
@@ -102,7 +103,7 @@ save = pl.callbacks.ModelCheckpoint(
 
 trainer = pl.Trainer(
     # devices=1,
-    max_epochs=10,
+    max_epochs=100,
     callbacks=[save],
 )
 
@@ -114,11 +115,11 @@ trainer.fit(module, datamodule=data_module)
 
 print(f"Best model path: {save.best_model_path}")
 
-module.load_state_dict(
-    torch.load(str(path_checkpoint_best), map_location="cpu")['state_dict'])
-# 如果有 train 完的话，用下面这个代码 导入 beat model
 # module.load_state_dict(
-#     torch.load(str(save.best), map_location="cpu")['state_dict'])
+#     torch.load(str(path_checkpoint_best), map_location="cpu")['state_dict'])
+# 如果有 train 完的话，用下面这个代码 导入 beat model
+module.load_state_dict(
+    torch.load(str(save.best), map_location="cpu")['state_dict'])
 
 model = encoder_decoder
 model = model.cpu()
@@ -150,5 +151,5 @@ def inference(lead):
     print(pred)
     return tokenizer.batch_decode(pred, skip_special_tokens=True)
 
-# CUDA_VISIBLE_DEVICES=2 python train_test_0425_use_YAN_encoder_and_token.py
+# CUDA_VISIBLE_DEVICES=1 python train_test_0425_use_YAN_encoder_and_token.py
 
